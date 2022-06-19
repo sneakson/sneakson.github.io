@@ -2,9 +2,10 @@ let canvas = document.getElementById('canvas');
 let context = canvas.getContext('2d');
 context.font = '16px Arial';
 
-
+const version = 0.1
 let score = 0;
 let ammo = 5;
+let enemyCount = 0;
 
 document.addEventListener('keydown', function(event) {
     if(gameState === 'alive'){
@@ -81,8 +82,15 @@ const enemyTypes = [
     '8',
     '9',
     '!',
+    '@',
+    '#',
+    '$',
     '%',
-    '*'
+    '^',
+    '&',
+    '*',
+    '(',
+    ')'
 ]
 
 const spawnPointX = 700;
@@ -144,20 +152,20 @@ function update(timestamp) {
 function draw() {
     context.fillRect(0,0,100,200);
     context.fillText(gameState, 50, 250);
-    context.fillText(`Level ${level}`, 50, 400);
     context.fillText(`Score ${score}`, 50, 300);
     context.fillText(`Ammo ${ammo}`, 50, 350);
+    context.fillText(`Level ${level}`, 50, 400);
+    context.fillText(`Version ${version}`, 50, 450);
     enemies.forEach(enemy => {
         context.fillText(enemy.value, enemy.x, enemy.y);
     });
 }
 
-let speed = 25;
 function moveEnemies(elapsedTime) {
     const seconds = elapsedTime / 1000;
-    const levelModifier = level * 20;
-    const movement = seconds * (speed + levelModifier);
+
     enemies.forEach(enemy => {
+        const movement = seconds * enemy.speed;
         enemy.x = enemy.x - movement;
     });
 }
@@ -193,13 +201,32 @@ function getYSpawn() {
 
 function makeEnemy() {
     const randomType = enemyTypes[Math.floor(Math.random() * enemyTypes.length)];
+    let speed = enemySpeed();
     const enemy = {
+        speed: speed,
         value: randomType,
         x: spawnPointX,
         y: getYSpawn()
     }
 
+    enemyCount++;
+
     return enemy;
+}
+
+let defaultSpeed = 25;
+
+function enemySpeed() {
+    const levelSpeedModifier = level * 20;
+    let speed = defaultSpeed + levelSpeedModifier;
+    if(shouldMakeFastEnemy()){
+        speed *= 1.25;
+    }
+    return speed;
+}
+
+function shouldMakeFastEnemy() {
+    return (enemyCount + 1) % 11 === 0;
 }
 
 
