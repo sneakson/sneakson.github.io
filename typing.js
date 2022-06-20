@@ -1,8 +1,8 @@
 let canvas = document.getElementById('canvas');
 let context = canvas.getContext('2d');
-context.font = '16px Arial';
+context.font = '24px Consolas';
 
-const version = 0.1
+const version = '0.1.1'
 let score = 0;
 let ammo = 5;
 let enemyCount = 0;
@@ -11,6 +11,15 @@ document.addEventListener('keydown', function(event) {
     if(gameState === 'alive'){
         if(!event.repeat && ammo > 0){
             // console.log('press', event.key);
+            enemies.sort((a, b) => {
+                if(a.x < b.x){
+                    return -1;
+                }else if(a.x == b.x){
+                    return 0;
+                }else{
+                    return 1;
+                }
+            });
             enemies.find(enemy => enemy.value === event.key);
             const hitIndex = enemies.findIndex(enemy => enemy.value === event.key);
             // console.log(hitIndex);
@@ -44,7 +53,7 @@ let enemies = [
 
 ];
 
-const enemyTypes = [
+const allEnemyTypes = [
     'a',
     'b',
     'c',
@@ -93,6 +102,8 @@ const enemyTypes = [
     ')'
 ]
 
+let enemyTypes = [...allEnemyTypes];
+
 const spawnPointX = 700;
 
 // console.log('hi mark');
@@ -101,26 +112,26 @@ window.requestAnimationFrame(update);
 
 let prevTime = 0;
 let spawnCountdown = 1000;
-let spawnRate = 500;
+const DEFAULT_SPAWN_RATE = 500;
+const HORDE_SPAWN_RATE = 400;
+let spawnRate = DEFAULT_SPAWN_RATE;
 
 let frame = 0;
 
 let gameState = 'alive';
 
 function update(timestamp) {
-
-    // console.log('prev time', prevTime)
-    // console.log('timestamp', timestamp)
-
     let elapsedTime = timestamp - prevTime;
     prevTime = timestamp;
     spawnCountdown -= elapsedTime;
-    // console.log('elasped time', elapsedTime);
-    // console.log('spawnCountdown', spawnCountdown);
-
-    // prevSpawnTime = prevSpawnTime ?? timestamp;
 
     if(gameState === 'alive'){
+        // if(enemyCount > 10 && enemyCount < 50){
+        //     hordeMode();
+        // }else{
+        //     normalMode();
+        // }
+
         if(spawnCountdown < 0){
             spawnCountdown = spawnRate;
             enemies.push(makeEnemy());
@@ -197,6 +208,16 @@ function getYSpawn() {
     lastY = lastY === 0 ? 50 : lastY;
 
     return y;
+}
+
+function hordeMode() {
+    spawnRate = HORDE_SPAWN_RATE;
+    enemyTypes = enemyTypes.filter(type => type.match(/[a-z]/));
+}
+
+function normalMode() {
+    spawnRate = DEFAULT_SPAWN_RATE;
+    enemyTypes = allEnemyTypes;
 }
 
 function makeEnemy() {
